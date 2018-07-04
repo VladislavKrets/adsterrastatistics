@@ -2,6 +2,7 @@ package online.omnia.statistics;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -38,7 +39,7 @@ public class Main {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String answer;
         Gson sourceGson = builder.create();
-        List<JsonCampaignEntity> jsonCampaignEntities;
+        List<JsonCampaignEntity> jsonCampaignEntities = null;
         List<JsonSourceEntity> jsonSourceEntities;
         SourceStatisticsEntity sourceStatisticsEntity;
         Map<String, String> parameters;
@@ -48,11 +49,16 @@ public class Main {
         AdsetEntity tempEntity;
         int afid = 0;
         for (AccountsEntity accountsEntity : accountsEntities) {
-            answer = HttpMethodUtils.getMethod("https://api3.adsterratools.com/advertiser/"
-                    + accountsEntity.getApiKey()
-                    /*+ "4ef9d2ee6fcad88611ecf37e6591c757"*/
-                    + "/campaigns.json");
-            jsonCampaignEntities = gson.fromJson(answer, List.class);
+            try {
+                answer = HttpMethodUtils.getMethod("https://api3.adsterratools.com/advertiser/"
+                        + accountsEntity.getApiKey()
+                        /*+ "4ef9d2ee6fcad88611ecf37e6591c757"*/
+                        + "/campaigns.json");
+                jsonCampaignEntities = gson.fromJson(answer, List.class);
+            } catch (Exception e) {
+                Utils.writeLog(e.toString());
+                continue;
+            }
             System.out.println(jsonCampaignEntities);
             for (JsonCampaignEntity jsonCampaignEntity : jsonCampaignEntities) {
                 answer = HttpMethodUtils.getMethod("https://api3.adsterratools.com/advertiser/"
@@ -74,16 +80,21 @@ public class Main {
                     }
                 } else afid = 2;
 
-                answer = HttpMethodUtils.getMethod("https://api3.adsterratools.com/advertiser/"
-                        + accountsEntity.getApiKey()
-                        /*+ "4ef9d2ee6fcad88611ecf37e6591c757"*/
-                        + "/stats.json?campaign="
-                        + jsonCampaignEntity.getId()
-                        + "&start_date="
-                        + simpleDateFormat.format(new Date(System.currentTimeMillis() - deltaTime - days * 24L * 60 * 60 * 1000))
-                        + "&finish_date="
-                        + simpleDateFormat.format(new Date(System.currentTimeMillis() - deltaTime)));
-                jsonSourceEntities = sourceGson.fromJson(answer, List.class);
+                try {
+                    answer = HttpMethodUtils.getMethod("https://api3.adsterratools.com/advertiser/"
+                            + accountsEntity.getApiKey()
+                            /*+ "4ef9d2ee6fcad88611ecf37e6591c757"*/
+                            + "/stats.json?campaign="
+                            + jsonCampaignEntity.getId()
+                            + "&start_date="
+                            + simpleDateFormat.format(new Date(System.currentTimeMillis() - deltaTime - days * 24L * 60 * 60 * 1000))
+                            + "&finish_date="
+                            + simpleDateFormat.format(new Date(System.currentTimeMillis() - deltaTime)));
+                    jsonSourceEntities = sourceGson.fromJson(answer, List.class);
+                } catch (Exception e) {
+                    Utils.writeLog(e.toString());
+                    continue;
+                }
                 System.out.println(jsonSourceEntities);
                 for (JsonSourceEntity jsonSourceEntity : jsonSourceEntities) {
 

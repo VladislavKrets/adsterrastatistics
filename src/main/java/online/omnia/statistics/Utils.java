@@ -3,8 +3,11 @@ package online.omnia.statistics;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +16,17 @@ import java.util.Map;
  */
 public class Utils {
 
+    private static FileWriter writer;
+    private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-dd-MM hh:mm:ss");
+
+    public static void writeLog(String text) {
+        try { if (writer == null) writer = new FileWriter("AdsTerraLog.log", true);
+            writer.write(dateFormat.format(new Date()) + "\n" + text);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public static synchronized Map<String, String> iniFileReader() {
         Map<String, String> properties = new HashMap<>();
         try (BufferedReader iniFileReader = new BufferedReader(new FileReader("sources_stat.ini"))) {
